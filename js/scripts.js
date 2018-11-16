@@ -3,39 +3,56 @@ $(function(){
 
 //variables
 var url = 'http://api.open-notify.org/iss-now.json';
-var url2 = 'https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=-34.44076&lon=-58.70521';
-var urlArray = [url, url2];
+var url2 = '';
 var data = [];
-var coordinates = [];
-var iss_position = [];
+var lat = '';
+var long = '';
 var html = '';
-var i = '';
+var data2 = [];
 
-//for loop?
-for (i=0; i < urlArray.length; i ++){
+  //fiveSeconds overall function
+  function fiveSeconds(){
+    //ajax request
+    $.ajax({
+      type:'GET',
+      url: url,
+      dataType:'json',
+      data:data,
+      async:true,
+      success:function(data){
+        console.log(data);
 
-//ajax request
-$.ajax({
-  type:'GET',
-  url: urlArray[i],
-  dataType:'json',
-  data:data,
-  async:true,
-  success:function(data){
-    console.log(data);
+        console.log(data.iss_position.latitude + ' ' + data.iss_position.longitude);
 
-    // iss_position.forEach(function(){
-    //   console.log(iss_position.latitude + '' + iss_position.longitude);
-    //   //write html message
-    //   html += '<h4 class="message">' + iss_position.latitude + iss_position.longitude + '</h4>';
-    // });//close coorindates function
+        lat = data.iss_position.latitude;
+        long = data.iss_position.longitude;
+        url2 = 'https://nominatim.openstreetmap.org/reverse?format=json&lat=' + lat + '&lon=' + long;
+        //second ajax
+        $.ajax({
+          type:'GET',
+          url: url2,
+          dataType:'json',
+          data:data2,
+          async:true,
+          success:function(data2){
+            console.log(data2);
 
-    //display html
-    $('#results').html(html);
-
-  }//close success
-
-});//close ajax
-}//close for loop
-
+            //write html message
+            if(url2 = data2.error){
+              console.log('iss over ocean');
+              html += '<p>It is over the ocean.</p>';
+            }
+            else{
+              html += '<p>The International Space Station is over ' + data2.address.country + data2.address.state;
+              html += '</p>';
+            }
+            //display html
+            $('#results').html(html);
+          }//close success second ajax
+        });//close second ajax
+     }//close success first ajax
+    });//close first ajax
+    setTimeout(fiveSeconds, 5000);
+  }//close fiveSeconds function
+  fiveSeconds();//call fiveSeconds function
 });//close ready function
